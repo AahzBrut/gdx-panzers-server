@@ -3,20 +3,20 @@ package letscode.gdx.server;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.utils.Array;
 import letscode.gdx.server.ws.WebSocketHandler;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class GameLoop extends ApplicationAdapter {
     private final WebSocketHandler socketHandler;
     private final Array<String> events = new Array<>();
-
-    public GameLoop(WebSocketHandler socketHandler) {
-        this.socketHandler = socketHandler;
-    }
 
     @Override
     public void create() {
@@ -36,7 +36,9 @@ public class GameLoop extends ApplicationAdapter {
         for (WebSocketSession session : socketHandler.getSessions()) {
             try {
                 for (String event : events) {
-                    session.sendMessage(new TextMessage(event));
+                    if (session.isOpen()) {
+                        session.sendMessage(new TextMessage(event));
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
